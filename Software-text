@@ -1,0 +1,700 @@
+#include <stdio.h>
+#include <locale.h>
+#include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <conio.h>
+#define CLEAN_BUFF do{ int c; while((c = getchar()) != '\n' && c != EOF);}while(0)
+#define MAX_SENHA 10
+#define MAX_LOGIN 50
+
+
+/* TI = Tipo de Imovel, AC = Area Construida*/
+//Variaveis declaradas para utilizar.
+char ti[15], cep[10], rua[50], bairro[50], numero[10], cidade[50], comodos[10], ac[10], descr[60], preco[50], vimovelc[15], cpf[20], rnd[15], tel[15], nome[60], endc[60], nas[10], senha[20], login[20], login2[20];
+char ps[10], nomeuser[20], vimv[10], txam[10], parc[5], email[40];
+
+float valor_financiado, tempo, juro_anual, saldo_devedor, juro_calculado, amortizacao, parcela, valor_parcela;
+
+int i;
+FILE* arquivo;
+int opcao = 0;
+//Fim da declaração de Variavel
+
+
+//limpar Variaveis de buffer
+void ClearFields(){
+	strcpy(cpf,"");
+	strcpy(nome,"");
+	strcpy(tel,"");
+	strcpy(endc,"");
+	strcpy(nas,"");
+	strcpy(rnd,"");
+	strcpy(email,"");
+	strcpy(ps,"");
+	strcpy(nomeuser,"");
+	strcpy(login,"");
+}
+//Fim da limpeza de buffer
+
+//Voids Para Programação
+void TirarEspaco(char texto[])
+{
+	int i;
+    for (i=0;i<strlen(texto);i++)
+    {
+		if (texto[i]==' ')
+		{
+			texto[i]='+';
+		}
+	}
+}
+
+void ColocarEspaco(char texto[])
+{
+	int i;
+	for (i=0;i<strlen(texto);i++)
+	{
+		if (texto[i]=='+')
+		{
+			texto[i]=' ';
+		}
+	}
+}
+
+int arquivo_existe(char nmarq[])
+{
+	
+	FILE* arq = fopen(nmarq, "r");
+    if (arq) {
+        fclose(arq);
+        return 1;
+    }
+    return 0;
+}
+
+int Usuario( FILE* file, char* user, char* senha ) //Verifica se é um usuario valido
+{
+	
+	char tmpLogin[MAX_LOGIN];
+	char tmpSenha[MAX_SENHA];
+	
+	fscanf(file, "%s", tmpLogin);
+	
+	while( !feof(file) )
+	{
+		if( !strcmp(tmpLogin, user) )
+		{
+			fscanf(file, "%s", tmpSenha);
+			
+			if( !strcmp(tmpSenha, senha) )
+				return 1;
+		}
+		else
+		{
+			fscanf(file, "%*s");
+		}
+		
+		fscanf(file, "%s", tmpLogin);
+	}
+	
+	return 0;
+}
+
+char* CriaSenha()
+{
+    register int i;
+	
+	char* senha = (char*)malloc(sizeof *senha * MAX_SENHA);
+	
+    for(i = 0; i < MAX_SENHA; i++)
+	{
+        senha[i] = getch();
+        if(senha[i] == '\r')
+            break;
+        else
+            printf("*");
+    }
+	senha[i] = '\0';
+	
+	return senha;
+}
+//Fim dos Voids para Programação
+
+
+// Void do Menu Principal
+void MostrarMenu() 
+{	
+	system("cls");
+	printf("=======================================================================================================================\n");
+	printf("Bem vindo\t\t\t      ");
+	printf("DATA : %s HORA: %s\n\n",__DATE__,__TIME__);
+	printf("\t\t\t   IMOBILIARIA \n\n");
+	printf("================================================================================ \n\n");
+	printf("(1) - Cliente \n");
+	printf("(2) - Imoveis \n");
+	printf("(3) - Simular Compra \n");
+	printf("(4) - Corretores \n");
+	printf("(5) - Sair\n");
+	printf("Entre com a opcao desejada ")	;
+	scanf("%i", &opcao);
+	getchar();
+}
+//Fim do Void do Menu Principal
+
+//Void para Login
+void usuarioprinc()
+{
+system("cls");
+FILE* fpIN;
+	
+	int option = 0;
+	
+	char *user  = (char*)malloc(sizeof *user * MAX_LOGIN);
+	char *senha,
+		 *confirmaSenha;
+	
+	do
+	{
+	printf("=======================================================================================================================\n");
+	printf("Bem vindo\t\t\t      ");
+	printf("DATA : %s HORA: %s\n\n",__DATE__,__TIME__);
+	printf("=======================================================================================================================\n\n");
+	printf("\t\t\t   IMOBILIARIA \n\n");
+    printf("=======================================================================================================================\n\n");
+	printf("1- Cadastrar\n2- Login\n");
+	scanf("%d", &option);
+	CLEAN_BUFF;
+		
+		switch( option )
+		{
+			case 1:
+				printf("Usuario: ");
+				gets(user);
+				
+				do
+				{
+					printf("Senha: ");
+					senha = CriaSenha();
+					printf("\nConfirmacao de senha: ");
+					confirmaSenha = CriaSenha();
+					printf("\n");
+					
+					if( !strcmp(senha, confirmaSenha) )
+						break;
+					else
+						printf("As senhas não são iguais. Tente novamente.\n");
+				}while(1);
+				
+				fpIN = fopen("usuarios.txt", "a+");
+				fprintf(fpIN, "%s %s\n", user, senha);
+				fclose(fpIN);
+				printf("\nUsuario Cadastrado com Sucesso!");
+
+				free(senha);
+				free(confirmaSenha);
+				getch();
+				system("cls");
+			break;
+			
+			
+			case 2:
+				
+				printf("Usuario: ");
+				gets(user);
+				printf("Senha: ");
+				senha = CriaSenha();
+				fpIN = fopen("usuarios.txt", "a+");
+				int loginok=Usuario(fpIN, user, senha);
+				printf("\nUsuario %s confirmado.\n\n",loginok ? "" : "não ");
+				
+				if(loginok==1){
+					printf("Digite uma tecla para Continuar!");
+					getchar();
+					MostrarMenu();
+				}
+				
+				
+				fclose(fpIN);
+				free(senha);
+			
+			return 0;
+
+			
+			default:
+				printf("Escolha 1, 2 ou 3...\n");
+			break;
+		}
+	
+	}while( 1 );
+	return (0);
+
+
+}
+	
+//Fim do Void de Login
+
+//Voids para Financiamento
+void MenuSimu() //Menu do Financiamento
+{
+    system("cls");
+	printf("=======================================================================================================================\n");
+	printf("Bem vindo\t\t\t      ");
+	printf("DATA : %s HORA: %s\n\n",__DATE__,__TIME__);
+	printf("=======================================================================================================================\n\n");
+	printf("\t\t\t   IMOBILIARIA \n\n");
+	printf("=======================================================================================================================\n\n");
+    scanf("%i", &opcao);
+    getchar();
+}
+
+void Simular_finan() // Simular Financeiro
+{
+     system("cls");
+	// INICIO FINAN
+	printf("\t\n\n");
+	printf("================================================================================\n");
+	printf("\t\t\tSIMULACAO DE FINANCIAMENTO! \t\n\n");
+	printf("================================================================================ \n\n");
+	printf("Informe o Valor: ");
+	scanf("%f", &valor_financiado);
+	printf("Informe a Quantidade de parcelas (Meses): ");
+	scanf("%f", &tempo);
+	printf("Digite a taxa de juros Anual: ");
+	scanf("%f",& juro_anual);
+	saldo_devedor = valor_financiado;
+	juro_anual = (juro_anual /100) /12;
+	amortizacao = valor_financiado / tempo;
+	{
+		printf("| PARCELA  | VALOR DA PARCELA | AMORTIZACAO | JUROS | SALDO DEVEDOR  |\n");           
+		while (parcela < tempo)
+			{
+				saldo_devedor = saldo_devedor - amortizacao;
+				juro_calculado = saldo_devedor * juro_anual;
+				valor_parcela = juro_calculado + amortizacao;
+				parcela = parcela + 1;
+
+				printf("Parcela: %0.0f | Valor: %0.2f | Amortizacao: %0.2f | Juros: %0.2f | Saldo: %0.2f |\n\n", parcela, valor_parcela, amortizacao, juro_calculado, saldo_devedor);
+			}
+	}
+}
+//Fim do Void de Financiamento
+
+//Void para Imoveis
+void MenuImov() // Menu Imovel
+{
+	system("cls");
+	printf("=======================================================================================================================\n");
+	printf("Bem vindo\t\t\t      ");
+	printf("DATA : %s HORA: %s\n\n",__DATE__,__TIME__);
+	printf("=======================================================================================================================\n\n");
+	printf("\t\t\t   IMOBILIARIA \n\n");
+	printf("=======================================================================================================================\n\n");
+	printf("(1) - Listar Imoveis \n");
+	printf("(2) - Cadastrar novo Imovel \n");
+	printf("(3) - Voltar ao meu anterior \n");
+	scanf("%i", &opcao);
+	getchar();
+}
+
+void Gravar_Imovel() // Salvar Imovel
+{
+	system("cls");
+    printf("\t\n\n");
+	printf("================================================================================\n");
+
+	printf("\t\t\t    CADASTRAR NOVO IMOVEL! \t\n\n");
+	printf("================================================================================\n\n");
+
+	printf("Tipo de Imovel: "); 
+	gets(ti);
+	printf("CEP: "); 
+	gets(cep);
+	printf("Rua: "); 
+	gets(rua);
+	TirarEspaco(rua);
+	printf("Bairro: ");
+	gets(bairro);
+	TirarEspaco(bairro);
+	printf("Cidade: ");
+	gets(cidade);
+	TirarEspaco(cidade);
+	printf("Comodos: ");
+	gets(comodos);
+	printf("Descricao do Imovel: ");
+	gets(descr);
+	TirarEspaco(descr);
+	printf("Valor do Imovel: ");
+	gets(vimovelc);
+	arquivo = fopen("imoveis.txt","a+"); 
+	fprintf(arquivo,"%s %s %s %s %s %s %s %s\n", &ti, &cep, &rua, &bairro, &cidade, &comodos, &descr, &vimovelc);
+	fclose(arquivo);
+	printf("Registro adicionado com sucesso!");
+}
+
+void ListImov() // Listar Imovel
+{
+	system("cls");
+	if (!arquivo_existe("imoveis.txt"))
+		return;
+		
+		//
+	printf("\t\n\n");
+	printf("================================================================================\n");
+
+	printf("\t\t\t\tLISTAGEM DE IMOVEIS! \t\n\n");
+	printf("================================================================================ \n\n");
+
+		//
+	arquivo = fopen("imoveis.txt","r"); 
+	while(!feof(arquivo))
+	{
+		fscanf(arquivo, "%s %s %s %s %s %s %s %s\n", &ti, &cep, &rua, &bairro, &cidade, &comodos, &descr, &vimovelc); 
+		printf("Tipo de imovel: %s \n\n", ti);
+		printf("CEP: %s \n\n", cep);
+		ColocarEspaco(rua);
+		printf("Rua: %s \n\n", rua);
+		ColocarEspaco(bairro);
+		printf("Bairro: %s \n\n", bairro);
+		ColocarEspaco(cidade);
+		printf("Cidade: %s \n\n", cidade);
+		ColocarEspaco(comodos);
+		printf("Comodos: %s \n\n", comodos);
+		ColocarEspaco(descr);
+		printf("Descrição: %s \n\n", descr);
+		printf("Valor do imovel: %s \n\n", vimovelc);
+		printf("================================================================================\n");
+
+	}
+	fclose(arquivo); 
+				
+	printf("Fim da listagem!");
+}
+//Fim do Void de Imoveis
+
+//Void de Cliente
+void MenuCli()  // Menu Cliente
+{
+	system("cls");
+	printf("=======================================================================================================================\n");
+	printf("Bem vindo\t\t\t      ");
+	printf("DATA : %s HORA: %s\n\n",__DATE__,__TIME__);
+	printf("=======================================================================================================================\n\n");
+	printf("\t\t\t   IMOBILIARIA \n\n");
+	printf("=======================================================================================================================\n\n");
+	printf("(1) - Listar Cliente \n");
+	printf("(2) - Cadastrar cliente \n");
+	printf("(3) - Excluir Cliente \n");
+	printf("(4) - Voltar ao menu anterior \n");
+	scanf("%i", &opcao);
+	getchar();
+}
+
+void Gravar_Cliente() //Salvar Cliente
+{
+	system("cls");
+    printf("\t\n\n");
+	printf("================================================================================\n");
+
+	printf("\t\t\t    CADASTRAR NOVO CLIENTE! \t\n\n");
+	printf("================================================================================ \n\n");
+
+	printf("CPF: "); 
+	gets(cpf);
+	printf("Nome: "); 
+	gets(nome);
+	TirarEspaco(nome);
+	printf("Telefone: ");
+	gets(tel);
+	TirarEspaco(tel);
+	printf("Endereço: "); 
+	gets(endc);
+	TirarEspaco(endc);
+	printf("Data de Nascimento: ");
+	gets(nas);
+	printf("Informe a Renda: ");
+	gets(rnd);
+	printf("Informe o E-mail: ");
+	gets(email);
+	arquivo = fopen("cliente.txt","a+");
+	fprintf(arquivo,"%s %s %s %s %s %s %s\n", &cpf, &nome, &tel, &endc, &nas, &rnd, &email);
+	fclose(arquivo); 
+	ClearFields();
+	printf("Registro adicionado com sucesos!");
+	opcao=1;
+}
+
+void ExcluirCli() //Excluir Cliente
+{
+	system("cls");
+	char exclu[80];
+	printf("\nExclusão do cadastro\n\n"); 
+	printf("Informe o cpf do cliente que deseja excluir: ");
+	gets(exclu);
+	arquivo = fopen("cliente.txt","r"); 
+	FILE* arquivoNovo = fopen("cliente_novo.txt","w"); 
+	while(!feof(arquivo))
+	{
+		fscanf(arquivo,"%s %s %s %s %s %s %s", cpf, nome, tel, endc, nas, rnd, email); 
+		if (strcmp(cpf,exclu)!=0)
+		{
+			TirarEspaco(nome);
+			fprintf(arquivoNovo,"%s %s %s %s %s %s %s", cpf, nome, tel, endc, nas, rnd, email);
+		}
+	}
+	fclose(arquivo);
+	fclose(arquivoNovo); 
+	
+	system("del cliente.txt");
+	system("rename cliente_novo.txt cliente.txt");
+
+	ClearFields();
+
+	printf("Fim da exclusão!");
+	opcao=1;
+}
+
+void ListCli() //Listar Cliente
+{
+    system("cls");
+	if (!arquivo_existe("cliente.txt"))
+		return;
+
+	printf("\t\n\n");
+	printf("=======================================================================================================================\n");
+	printf("\t\t\t\tLISTAGEM DE CLIENTES! \t\n\n");
+	printf("=======================================================================================================================\n\n");		
+	arquivo = fopen("cliente.txt","r"); 
+	while(!feof(arquivo))
+	{
+		fflush(stdin);
+		fscanf(arquivo,"%s %s %s %s %s %s %s\n", cpf, nome, tel, endc, nas, rnd, email); 
+		printf("CPF: %s \n\n", cpf);
+		ColocarEspaco(nome);
+		printf("Nome: %s \n\n", nome);
+		ColocarEspaco(tel);
+		printf("Telefone: %s \n\n", tel);
+		ColocarEspaco(endc);
+		printf("Endereco: %s \n\n", endc);
+		printf("Data de Nascimento: %s \n\n", nas);
+		printf("Renda mensal: %s \n\n", rnd);
+		printf("E-mail: %s \n\n", email);
+	    printf("================================================================================\n");
+
+
+
+	}
+	fclose(arquivo); 
+
+
+	ClearFields();
+			
+	printf("Fim da listagem!");
+	opcao=1;
+}
+//Fim do Void de Cliente
+
+//Void de Usuario
+void MenuUser() // Menu de Usuario
+{
+	system("cls");
+	printf("=======================================================================================================================\n");
+	printf("Bem vindo\t\t\t      ");
+	printf("DATA : %s HORA: %s\n\n",__DATE__,__TIME__);
+	printf("=======================================================================================================================\n\n");
+	printf("\t\t\t   IMOBILIARIA \n\n");
+	printf("=======================================================================================================================\n\n");
+	printf("(1) - Cadastrar novo corretor \n");
+	printf("(2) - Listar Corretores \n");
+	printf("(3) - Excluir Corretor \n");
+	printf("(4) - Trocar de Usuario \n");
+	printf("(5) - Voltar ao Menu Anterior \n");
+	scanf("%i", &opcao);
+	getchar();
+}
+
+void Gravar_User() // Salvar Usuario
+{
+	system("cls");
+    printf("\t\n\n");
+	printf("================================================================================\n");
+
+	printf("\t\t\t    CADASTRAR NOVO CORRETOR! \t\n\n");
+	printf("================================================================================ \n\n");
+
+	
+	printf("Nome: "); 
+	gets(nomeuser);
+	TirarEspaco(nomeuser);
+	printf("CPF: "); 
+	gets(login);
+	printf("Codigo: "); 
+	gets(ps);
+
+	arquivo = fopen("user.txt","a+");
+	fprintf(arquivo,"%s %s %s \n", &nomeuser, login, &ps);
+	fclose(arquivo); 
+	ClearFields();
+	printf("Registro adicionado com sucesso!");
+	opcao=4;
+}
+
+void ExcluirUser() //Excluir Cliente
+{
+	system("cls");
+	char exclu[80];
+	printf("\nExclusão do cadastro\n\n"); 
+	printf("Informe o Nome do corretor: ");
+	gets(exclu);
+	arquivo = fopen("user.txt","r"); 
+	FILE* arquivoNovo = fopen("user_novo.txt","w");
+	while(!feof(arquivo))
+	{
+		fscanf(arquivo,"%s %s %s", nomeuser, login, ps);
+		if (strcmp(nomeuser,exclu)!=0)
+		{
+			TirarEspaco(nome);
+			fprintf(arquivoNovo,"%s %s %s", nomeuser, login, ps); 
+		}
+	}
+	fclose(arquivo); 
+	fclose(arquivoNovo); 
+	
+	system("del user.txt");
+	system("rename user_novo.txt user.txt");
+		ClearFields();			
+	printf("Fim da exclusão!");
+	opcao=4;
+}
+
+void Listuser()  // Listar Usuario
+{
+	system("cls");
+	if (!arquivo_existe("user.txt"))
+		return;
+		
+    printf("\t\n\n");
+	printf("================================================================================\n");
+
+	printf("\t\t\t    LISTAGEM DE USUARIOS! \t\n\n");
+	printf("================================================================================ \n\n");
+	fflush(stdin);
+	arquivo = fopen("user.txt","r"); 
+	while(!feof(arquivo))
+	{
+		fflush(stdin);
+		fscanf(arquivo,"%s %s %s %s %s \n", nomeuser, login, ps);
+		ColocarEspaco(nomeuser);		
+		printf("Nome: %s \n", nomeuser);
+		printf("Cpf: %s \n", login);
+		printf("Codigo: %s \n", ps); 
+	}
+	fclose(arquivo); 
+	
+	ClearFields();			
+	printf("Fim da listagem!");
+	opcao=4;
+}
+//Fim do Void de Usuario
+
+int main()
+{
+  
+    usuarioprinc();
+	setlocale(LC_ALL,"Portuguese");
+		
+	while(opcao!=5)
+	{
+
+
+
+		
+		switch(opcao)
+		{
+			case 1: // Menu Cliente
+
+				MenuCli();
+					switch(opcao)
+					{
+						case 1:
+								ListCli();
+						break;
+						
+						case 2:
+								Gravar_Cliente();
+						break;
+						
+						case 3: 
+								ExcluirCli();
+
+						break;
+						case 4 :
+								MostrarMenu();
+						break;
+					}
+								
+			break;
+			
+			case 2: // Imovel
+				MenuImov();
+					switch(opcao)
+					{
+						case 1:
+								ListImov();
+						break;
+						
+						case 2:
+								Gravar_Imovel();
+						break;
+						
+						case 3: 
+								MostrarMenu();
+						break;
+					}
+			break;
+			
+			
+			case 3: // Simular Financeiro
+
+				Simular_finan();
+					
+			break;
+			
+            	
+			case 4: // Tela de usuario
+
+						MenuUser();
+						switch(opcao)
+						{
+							case 1:
+									Gravar_User();
+							break;
+							
+							case 2: 
+									Listuser();
+							break;
+						
+							case 3: 
+									ExcluirUser();
+							break;
+							
+							case 4:
+									usuarioprinc();
+							break;
+							
+							case 5:
+									MostrarMenu();
+							break;
+						}
+			break;
+			
+			default:
+				printf("Opcao Invalida!");
+			break;
+		}
+		printf("\n\nClique uma tecla para continuar.\n\n");
+		getch();
+		system("cls");
+	}
+
+}
